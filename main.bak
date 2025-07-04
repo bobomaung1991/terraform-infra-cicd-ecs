@@ -1,0 +1,32 @@
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_ecs_cluster" "my_first_cluster" {
+  name = "my-ecs-cluster"
+}
+
+
+resource "aws_ecs_service" "nginx" {
+  name            = "nginx-service"
+  cluster         = aws_ecs_cluster.my_first_cluster.id
+  task_definition = aws_ecs_task_definition.nginx.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+}
+
+resource "aws_ecs_task_definition" "nginx" {
+  family                   = "nginx"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  container_definitions    = jsonencode([{
+    name  = "nginx",
+    image = "nginx:latest",
+    portMappings = [{
+      containerPort = 80
+    }]
+  }])
+}
